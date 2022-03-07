@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siswa_app/module/bloc/person_bloc.dart';
+import 'package:siswa_app/module/model/person_model.dart';
 import 'package:siswa_app/module/view/home_page.dart';
 import 'package:siswa_app/services/repository.dart';
 
@@ -46,93 +47,101 @@ class _PersonAddPageState extends State<PersonAddPage> {
           ),
         ),
       ),
-      body: BlocListener<PersonBloc, PersonState>(
-        listener: (context, state) {
-          if (state is PersonLoaded) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                dismissDirection: DismissDirection.up,
-                content: Text('Data Di simpan'),
-              ),
-            );
-          }
-        },
-        child: Container(
-          margin: const EdgeInsets.only(top: 30, right: 20, left: 20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width,
-              ),
-              child: Stack(
-                children: <Widget>[
-                  TextField(
-                    maxLength: 5,
-                    controller: txtId,
+      body: Container(
+        margin: const EdgeInsets.only(top: 30, right: 20, left: 20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width,
+            ),
+            child: Stack(
+              children: <Widget>[
+                TextField(
+                  maxLength: 5,
+                  controller: txtId,
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.perm_identity),
+                    labelText: "ID",
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(top: 80.0),
+                  child: TextField(
+                    maxLength: 40,
+                    controller: txtName,
                     decoration: const InputDecoration(
-                      icon: Icon(Icons.perm_identity),
-                      labelText: "ID",
+                      icon: Icon(Icons.text_format),
+                      labelText: 'Name',
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.only(top: 80.0),
-                    child: TextField(
-                      maxLength: 40,
-                      controller: txtName,
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.text_format),
-                        labelText: 'Name',
-                      ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(top: 160.0),
+                  child: TextField(
+                    maxLength: 40,
+                    controller: txtLastName,
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.text_rotate_vertical),
+                      labelText: "Last name",
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.only(top: 160.0),
-                    child: TextField(
-                      maxLength: 40,
-                      controller: txtLastName,
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.text_rotate_vertical),
-                        labelText: "Last name",
-                      ),
-                    ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(top: 240.0),
+                  child: TextField(
+                    maxLength: 2,
+                    controller: txtAge,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                        labelText: 'Age', icon: Icon(Icons.calendar_today)),
                   ),
-                  Container(
-                    padding: const EdgeInsets.only(top: 240.0),
-                    child: TextField(
-                      maxLength: 2,
-                      controller: txtAge,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                          labelText: 'Age', icon: Icon(Icons.calendar_today)),
-                    ),
-                  ),
-                  Center(
-                    child: Padding(
+                ),
+                Center(
+                  child: Padding(
                       padding: const EdgeInsets.only(top: 320.0),
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final persons = await repository.fetchAddpersons(
-                            id: txtId.text.trim(),
-                            name: txtName.text.trim(),
-                            lastName: txtLastName.text.trim(),
-                            age: int.parse(txtAge.text.trim()),
-                          );
-                          print(persons.toString());
-                          // context.read<PersonBloc>().add(
-                          //       AddPerson(persons: persons),
-                          //     );
-                          // clearForm();
-                          // Navigator.pop(context);
+                      child: BlocBuilder<PersonBloc, PersonState>(
+                        builder: (context, state) {
+                          if (state is PersonInitial) {
+                            return buildLoading();
+                          } else if (state is PersonLoading) {
+                            return buildLoading();
+                          } else if (state is PersonLoaded) {
+                            return ElevatedButton(
+                              onPressed: () async {
+                                final persons =
+                                    await repository.fetchAddpersons(
+                                  id: txtId.text.trim(),
+                                  name: txtName.text.trim(),
+                                  lastName: txtLastName.text.trim(),
+                                  age: int.parse(txtAge.text.trim()),
+                                );
+                                List<PersonModel> personModel = persons!;
+                                print(personModel);
+                                context.read<PersonBloc>().add(
+                                      AddPerson(persons: persons),
+                                    );
+                                clearForm();
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("data ditambahkan"),
+                                  ),
+                                );
+                              },
+                              child: const Text("Tambah Data Siswa"),
+                            );
+                          } else if (state is PersonError) {
+                            return const Text("Something went Wrong!!");
+                          } else {
+                            return const Text("Something went Wrong!!");
+                          }
                         },
-                        child: const Text("Tambah Data Siswa"),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                      )),
+                ),
+              ],
             ),
           ),
         ),

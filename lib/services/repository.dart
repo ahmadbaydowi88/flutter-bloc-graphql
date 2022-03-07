@@ -39,22 +39,43 @@ class Repository {
       required String name,
       required String lastName,
       required int age}) async {
+    List<PersonModel> persons = [];
     await _client.mutate(
       MutationOptions(
         document: gql(
           QueryMutation().addPerson(id, name, lastName, age),
         ),
         onCompleted: (data) {
-          print(data);
-          List<PersonModel> persons = [];
+          print(data['addPerson']['name']);
+          // List<PersonModel> persons = [];
           persons.add(
             PersonModel(
-              id: id,
-              name: name,
-              lastName: lastName,
-              age: age,
+              id: data['addPerson']['id'],
+              name: data['addPerson']['name'],
+              lastName: data['addPerson']['lastName'],
+              age: data['addPerson']['age'],
             ),
           );
+          print(persons);
+        },
+        onError: (error) => const Text("Samething wrong!!"),
+      ),
+    );
+    return persons;
+  }
+
+  Future<List<PersonModel>?> fetchDeletePersons(
+      {required String id,
+      required String name,
+      required String lastName,
+      required int age}) async {
+    await _client.mutate(
+      MutationOptions(
+        document: gql(
+          QueryMutation().addPerson(id, name, lastName, age),
+        ),
+        onCompleted: (data) {
+          print("data berhasil dihapus");
         },
         onError: (error) => const Text("Samething wrong!!"),
       ),

@@ -17,6 +17,7 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
 
   void _onLoadPerson(LoadPerson event, Emitter<PersonState> emit) async {
     final persons = await repository.fetchAllpersons();
+    print("On load" + persons.toString());
     emit(
       PersonLoaded(persons: persons),
     );
@@ -30,6 +31,8 @@ class PersonBloc extends Bloc<PersonEvent, PersonState> {
           persons: state.persons!..addAll(event.persons!),
         ),
       );
+      final persons = state.persons!..addAll(event.persons!);
+      print(event.persons);
     }
   }
 
